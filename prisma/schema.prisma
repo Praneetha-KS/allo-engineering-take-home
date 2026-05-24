@@ -9,10 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─────────────────────────────────────────────
-// PRODUCT
-// A sellable item (e.g. "Blue Sneaker – Size 10")
-// ─────────────────────────────────────────────
 model Product {
   id          String   @id @default(cuid())
   name        String
@@ -28,10 +24,7 @@ model Product {
   @@map("products")
 }
 
-// ─────────────────────────────────────────────
-// WAREHOUSE
-// A physical location that holds stock
-// ─────────────────────────────────────────────
+
 model Warehouse {
   id        String   @id @default(cuid())
   name      String
@@ -44,18 +37,9 @@ model Warehouse {
   @@map("warehouses")
 }
 
-// ─────────────────────────────────────────────
-// INVENTORY
-// Stock levels for one product in one warehouse.
-//
+
 // availableStock = totalUnits - reservedUnits
-//
-// CONCURRENCY NOTE:
-// The `reservedUnits` column is updated atomically using a
-// Postgres UPDATE … WHERE with a row-level lock (SELECT FOR UPDATE)
-// inside a transaction. This prevents two simultaneous reservations
-// from double-spending the same unit.
-// ─────────────────────────────────────────────
+
 model Inventory {
   id            String   @id @default(cuid())
   productId     String
@@ -74,28 +58,20 @@ model Inventory {
   @@map("inventories")
 }
 
-// ─────────────────────────────────────────────
+
 // RESERVATION STATUS
 // pending   → hold is active, waiting for payment
 // confirmed → payment succeeded, stock permanently decremented
 // released  → payment failed / expired / user cancelled; units freed
-// ─────────────────────────────────────────────
+
 enum ReservationStatus {
   pending
   confirmed
   released
 }
 
-// ─────────────────────────────────────────────
-// RESERVATION
-// A temporary hold on `quantity` units of a product in a warehouse.
-//
-// Lifecycle:
-//   POST /api/reservations          → status: pending,    expiresAt: now + 10 min
-//   POST /api/reservations/:id/confirm → status: confirmed  (if not expired)
-//   POST /api/reservations/:id/release → status: released   (early cancel)
-//   Cron / lazy cleanup             → status: released   (expiresAt passed)
-// ─────────────────────────────────────────────
+// A temporary hold on quantity units of a product in a warehouse.
+
 model Reservation {
   id          String            @id @default(cuid())
   inventoryId String
@@ -110,22 +86,18 @@ model Reservation {
   // Idempotency key (optional bonus): unique per client retry key
   idempotencyKey String? @unique
 
-  @@index([status, expiresAt]) // speeds up the expiry cleanup query
+  @@index([status, expiresAt]) 
   @@map("reservations")
 }
 
-// ─────────────────────────────────────────────
-// IDEMPOTENCY KEY (bonus)
-// Stores the cached response for a given client key so that
-// retried POST requests return the original result without
-// repeating side effects.
-// ─────────────────────────────────────────────
+
+// Stores the cached response for a given client key so that retried POST requests return the original result without repeating side effects.
 model IdempotencyRecord {
-  key          String   @id               // value of the Idempotency-Key header
-  responseBody Json                        // the full JSON response body we returned
-  statusCode   Int                         // HTTP status code we returned
+  key          String   @id               
+  responseBody Json                        
+  statusCode   Int                         
   createdAt    DateTime @default(now())
-  expiresAt    DateTime                    // TTL – safe to delete after this
+  expiresAt    DateTime                    
 
   @@index([expiresAt])
   @@map("idempotency_records")
