@@ -4,6 +4,13 @@ This is a complete, production-ready implementation of the multi-warehouse inven
 
 The application handles high-concurrency checkout volumes by isolating temporary holds from main stock and enforcing database-level locking during the reservation window.
 
+## 🔗 Live Demo
+https://allo-take-home-lake.vercel.app
+
+## 📂 GitHub Repository
+https://github.com/Praneetha-KS/Allo-Engineering-Take-Home
+
+
 ## 🚀 Tech Stack
 - **Framework:** Next.js 15+ (App Router)
 - **Language:** TypeScript
@@ -22,7 +29,7 @@ The application handles high-concurrency checkout volumes by isolating temporary
 Create a .env file in the root directory and paste your hosted database connection string:
 
 Code snippet
-DATABASE_URL="postgresql://neondb_owner:npg_g1GSwjIem9bk@ep-fragrant-snow-apezfkh2.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL="your_neon_database_url"
 
 3. **Push the database schema:**
 
